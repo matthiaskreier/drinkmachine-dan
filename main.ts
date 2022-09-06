@@ -222,152 +222,112 @@ function fillCup() {
 
 //Add your own code below.
 
-function generateRandomDrink(values: Number[]) {
-
-    let drinkIndex: Number = values[Math.round(Math.randomRange(0, values.length - 1))]
-    let drinkString = ""
-
-    switch (drinkIndex) {
-        case 0: {
-
-            // a good cup of coffee with a size and strength of Mr. Weinberg's choosing
-            let sizeIndex = Math.randomRange(0, 2)
-            let strengthIndex = Math.randomRange(0, 1)
-            let sizeString: String = ""
-            let strengthString: String = ""
-
-            switch (sizeIndex) {
-
-                case 0: {
-                    sizeString = "small"
-                    break;
-                }
-
-                case 1: {
-                    sizeString = "medium"
-                    break;
-                }
-
-                default: {
-                    sizeString = "Mr. Wolf sized"
-                    break;
-                }
 
 
 
-            }
-
-            switch (strengthIndex) {
-                case 0: {
-                    strengthString = "normal"
-                    break;
-                }
-
-                case 1: {
-                    strengthString = "sleepy"
-                    break;
-                }
-
-            }
 
 
-            drinkString = sizeString + " coffee of " + strengthString + " strength"
-            break;
-        }
-        case 1: {
-            //a good cup of soda with a size of Mr. Weinberg's choosing
-            let sizeIndex = Math.randomRange(0, 2)
-            let sizeString: String = ""
-
-            switch (sizeIndex) {
-
-                case 0: {
-                    sizeString = "small"
-                    break;
-                }
-
-                case 1: {
-                    sizeString = "medium"
-                    break;
-                }
-
-                default: {
-                    sizeString = "Mr. Wolf sized"
-                    break;
-                }
-
-
-
-            }
-
-            drinkString = sizeString + " cup of soda"
-            break;
-        }
-        case 2: {
-            //a small cup of hot water with a temperature of Mr. Weinberg's choosing
-            let temperatureValue = Math.randomRange(35, 90)
-            let sizeString: String = ""
-
-            drinkString = "small cup of hot water at " + temperatureValue + " ˚C"
-            break;
-        }
-        case 3: {
-            //A Mr. Wolf sized cup of water chilled to a temperature of Mr. Weinberg's choosing
-            let temperatureValue = Math.randomRange(4, 18)
-            drinkString = "Mr. Wolf sized cup of water chilled to " + temperatureValue + " ˚C"
-            break;
-        }
-        default: {
-            //A medium or small cup of sparking (carbonated) water cooled to 10 ˚C
-            let sizeIndex = Math.randomRange(0, 1)
-            let sizeString: String = ""
-
-            switch (sizeIndex) {
-
-                case 0: {
-                    sizeString = "small"
-                    break;
-                }
-
-                case 1: {
-                    sizeString = "medium"
-                    break;
-                } //oops, did I not use default here? I guess you don't have to always do that.
-
-
-            }
-            drinkString = sizeString + " cup of sparkling water at 10 ˚C"
-            break;
-        }
-
+function get_data(c: boolean) {
+    let filledCup = fillCup()
+    let concentration_coffee = filledCup.coffeeGrounds / filledCup.volume
+    let concentration_soda = filledCup.sodaMix / filledCup.volume
+    if (c == true) {
+        serial.writeLine(concentration_coffee.toString())
     }
-    //serial.writeLine(drinkString)
-    return drinkString
+    else {
+        serial.writeLine(concentration_soda.toString())
+    }
+    serial.writeLine(filledCup.descriptionString)
 }
 
 
 
 
-input.onButtonPressed(Button.A, function () {
 
-    let names = ["Dan", "Dongjae", "William", "Khang", "Dipper"]
-    for (let i = 0; i < names.length; i++) {
-        let drinkIndices = [0, 1]
-        serial.writeLine("******************************************")
-        serial.writeLine(names[i] + " needs to make:")
-        serial.writeLine(" a " + generateRandomDrink(drinkIndices))
-        drinkIndices = [2, 3, 4]
-        serial.writeLine("and a " + generateRandomDrink(drinkIndices))
+function start_coffee() {
+    fill_container()
+    is_concentration_coffee(true)
+    is_temp_coffee(true)
+    get_data(true)
+}
 
 
+
+
+function start_soda() {
+    fill_container()
+    is_concentration_coffee(false)
+    is_temp_coffee(false)
+    myDrinkMachine.carbonateMixingContainer()
+    get_data(false)
+
+}
+
+
+
+
+
+
+function fill_container() {
+    let small = 200
+    let medium = 350
+    let mrwolf = 500
+    myDrinkMachine.startFillingContainer()
+    while (myDrinkMachine.getVolume() < small) {
+        myDrinkMachine.wait(1)
+    }
+    myDrinkMachine.stopFillingContainer()
+}
+
+
+
+
+
+function is_concentration_coffee(c: boolean) {
+    let sleepy = 0.08
+    let normal = 0.06
+    let soda = 0.1
+    if (c == true) {
+        while (myDrinkMachine.getGrounds() / myDrinkMachine.getVolume() < normal) {
+            myDrinkMachine.addGrounds()
+        }
+    }
+    else {
+        while (myDrinkMachine.getSodaMix() / myDrinkMachine.getVolume() < soda) {
+            myDrinkMachine.addSodaMix()
+        }
+    }
+}
+
+
+
+function is_temp_coffee(c: boolean) {
+    let coffee_temp = 93
+    let soda_temp = 9
+    if (c == true) {
+        myDrinkMachine.turnHeaterOn()
+        while (myDrinkMachine.getTemperature() < coffee_temp) {
+            myDrinkMachine.wait(1)
+        }
+        myDrinkMachine.turnHeaterOff()
+    }
+    else {
+        myDrinkMachine.turnCoolerOn()
+        while (myDrinkMachine.getTemperature() > soda_temp) {
+            myDrinkMachine.wait(1)
+        }
     }
 
+}
+
+
+input.onButtonPressed(Button.A, function() {
+    serial.writeLine("I start to make Mr. Wolf sized coffee, sleepy strenth.")
+    start_coffee()
 })
 
 
-
-
-
-
-
-
+input.onButtonPressed(Button.B, function() {
+    serial.writeLine("I start to make Mr. Wolf sized cup of water chilled to 4 degrees.")
+    start_soda()
+})
